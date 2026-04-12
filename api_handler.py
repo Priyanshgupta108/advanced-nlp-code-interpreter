@@ -32,12 +32,12 @@ Code:
 
     def translate_code(self, code: str, source_lang: str, target_lang: str) -> str:
         return self._call_api(f"""Translate this {source_lang} code to {target_lang}.
-- Preserve exact same logic
-- Use idiomatic {target_lang} style
-- Add comments explaining key differences
-{source_lang} Code:
-{code}
-Provide ONLY the translated {target_lang} code.""")
+            - Preserve exact same logic
+            - Use idiomatic {target_lang} style
+            - Add comments explaining key differences
+            {source_lang} Code:
+            {code}
+            Provide ONLY the translated {target_lang} code.""")
 
     def analyze_complexity(self, code: str, language: str) -> str:
         return self._call_api(f"""Analyze time and space complexity of this {language} code.
