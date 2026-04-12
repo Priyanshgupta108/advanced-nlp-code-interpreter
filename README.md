@@ -74,6 +74,7 @@ Code-Interpreter-AI/
 │── nlp_processor.py
 │── history_manager.py
 │── code_visualizer.py
+│── packages.txt
 │── heatmap_generator.py
 │── step_visualizer.py
 │── visualizer.py
