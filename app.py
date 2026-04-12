@@ -17,7 +17,7 @@ from history_manager import HistoryManager
 from auth_manager import AuthManager
 from step_visualizer import trace_python_execution, render_step_visualizer
 
-st.set_page_config(page_title="NLP Code Interpreter", page_icon="🧠", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="NeuraCode: AI Code Interpreter", page_icon="🧠", layout="wide", initial_sidebar_state="expanded")
 import streamlit as st
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "")
 SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "")
