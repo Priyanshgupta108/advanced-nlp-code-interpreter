@@ -140,6 +140,37 @@ def detect_language(code: str) -> tuple:
     if 'C' in scores and not re.search(r';', code):
         scores['C'] = max(0, scores['C'] - 5)
 
+    # Step 1.6: Additional Python-specific heuristics
+
+# Detect common Python built-in functions
+    if re.search(r'\bprint\s*\(', code):
+        scores['Python'] = scores.get('Python', 0) + 5
+
+    if re.search(r'\bmap\s*\(', code):
+        scores['Python'] = scores.get('Python', 0) + 3
+
+    if re.search(r'\bstr\s*\(', code):
+        scores['Python'] = scores.get('Python', 0) + 2
+
+    if re.search(r'\blen\s*\(', code):
+        scores['Python'] = scores.get('Python', 0) + 2
+
+    # Detect Python list multiplication (e.g., [5] * 3)
+    if re.search(r'\[\s*\d+\s*\]\s*\*\s*\d+', code):
+        scores['Python'] = scores.get('Python', 0) + 4
+
+    # Detect list literals like [1, 2, 3]
+    if re.search(r'\[\s*\d+(?:\s*,\s*\d+)+\s*\]', code):
+        scores['Python'] = scores.get('Python', 0) + 3
+
+    # Detect Python-style comments
+    if re.search(r'^\s*#', code, re.MULTILINE):
+        scores['Python'] = scores.get('Python', 0) + 2
+
+    # Detect absence of semicolons (typical in Python)
+    if not re.search(r';', code):
+        scores['Python'] = scores.get('Python', 0) + 2
+
     # Step 2: Pygments-based detection (adds bonus score)
     try:
         lexer = guess_lexer(code)
