@@ -210,7 +210,7 @@ def show_auth_page():
     c1,c2,c3 = st.columns([1,2,1])
     with c2:
         st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
-        st.markdown("## 🧠 NLP Code Interpreter ")
+        st.markdown("## 🧠 NeuraCode: AI Code Interpreter ")
         st.markdown("*Sign in to save your personal history*")
         st.divider()
         t1,t2,t3 = st.tabs(["🔐 Login","📝 Sign Up","👤 Guest"])
