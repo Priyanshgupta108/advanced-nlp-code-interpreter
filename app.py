@@ -428,30 +428,84 @@ def show_main_app():
         else:
             api = APIHandler(st.session_state.api_key)
             cd = st.session_state.cached_data or {}
-            t1,t2,t3,t4,t5,t6,t7,t8 = st.tabs(["📖 Explain","🔄 Translate","📈 Complexity","🐛 Bugs","🧪 Tests","📝 Pseudocode","🔢 Algorithm","🔀 Approaches"])
 
+                # Helper function for AI feature tabs
             def aitab(tab, key, label, ckey, fn, *args):
                 with tab:
                     st.markdown(f"### {label}")
                     if cd.get(ckey):
-                        st.info("⚡ Cached!"); st.markdown(cd[ckey])
+                        st.info("⚡ Cached!")
+                        st.markdown(cd[ckey])
                     elif st.button(label, key=key):
                         with st.spinner("Processing..."):
-                            r = fn(*args); st.markdown(r)
+                            r = fn(*args)
+                            st.markdown(r)
                             st.session_state.ai_results[ckey] = r
 
-            aitab(t1,"bex","📖 Explain Code","explanation",api.explain_code,code,final_lang)
-            with t2:
+            # Initialize tab state
+            if "active_tab" not in st.session_state:
+                st.session_state.active_tab = 0
+
+            tab_labels = [
+                "📖 Explain","🔄 Translate","📈 Complexity","🐛 Bugs",
+                "🧪 Tests","📝 Pseudocode","🔢 Algorithm","🔀 Approaches"
+            ]
+
+            selected_tab = st.radio(
+                "Select Feature",
+                tab_labels,
+                index=st.session_state.active_tab,
+                horizontal=True,
+                label_visibility="collapsed"
+            )
+
+            # Update session state based on selection
+            st.session_state.active_tab = tab_labels.index(selected_tab)
+
+                        # Select tabs using index
+            if selected_tab == "📖 Explain":
+                aitab(st.container(), "bex", "📖 Explain Code",
+                    "explanation", api.explain_code, code, final_lang)
+
+            elif selected_tab == "🔄 Translate":
                 st.markdown(f"### 🔄 {final_lang} → {target_lang}")
-                if cd.get("translation"): st.info("⚡ Cached!"); st.code(cd["translation"],language=target_lang.lower())
-                elif st.button(f"Translate to {target_lang}",key="btr"):
-                    with st.spinner("..."): r=api.translate_code(code,final_lang,target_lang); st.code(r,language=target_lang.lower()); st.session_state.ai_results["translation"]=r
-            aitab(t3,"bcx","📈 Analyze Complexity","complexity",api.analyze_complexity,code,final_lang)
-            aitab(t4,"bbg","🐛 Scan for Bugs","bugs",api.detect_bugs,code,final_lang)
-            aitab(t5,"bts","🧪 Generate Test Cases","test_cases",api.generate_test_cases,code,final_lang)
-            aitab(t6,"bps","📝 Generate Pseudocode","pseudocode",api.generate_pseudocode,code,final_lang)
-            aitab(t7,"bal","🔢 Identify Algorithm","algorithm",api.generate_algorithm,code,final_lang)
-            aitab(t8,"bap","🔀 Show All Approaches","approaches",api.generate_approaches,code,final_lang)
+                if cd.get("translation"):
+                    st.info("⚡ Cached!")
+                    st.code(cd["translation"], language=target_lang.lower())
+                elif st.button(f"Translate to {target_lang}", key="btr"):
+                    with st.spinner("Translating..."):
+                        r = api.translate_code(code, final_lang, target_lang)
+                        st.code(r, language=target_lang.lower())
+                        st.session_state.ai_results["translation"] = r
+
+                        if target_lang.lower() == "python":
+                            st.session_state.translated_python_code = r
+                            st.success("✅ Translated to Python!")
+
+            elif selected_tab == "📈 Complexity":
+                aitab(st.container(), "bcx", "📈 Analyze Complexity",
+                    "complexity", api.analyze_complexity, code, final_lang)
+
+            elif selected_tab == "🐛 Bugs":
+                aitab(st.container(), "bbg", "🐛 Scan for Bugs",
+                    "bugs", api.detect_bugs, code, final_lang)
+
+            elif selected_tab == "🧪 Tests":
+                aitab(st.container(), "bts", "🧪 Generate Test Cases",
+                    "test_cases", api.generate_test_cases, code, final_lang)
+
+            elif selected_tab == "📝 Pseudocode":
+                aitab(st.container(), "bps", "📝 Generate Pseudocode",
+                    "pseudocode", api.generate_pseudocode, code, final_lang)
+
+            elif selected_tab == "🔢 Algorithm":
+                aitab(st.container(), "bal", "🔢 Identify Algorithm",
+                    "algorithm", api.generate_algorithm, code, final_lang)
+
+            elif selected_tab == "🔀 Approaches":
+                aitab(st.container(), "bap", "🔀 Show All Approaches",
+                    "approaches", api.generate_approaches, code, final_lang)
+
 
             if st.session_state.ai_results and not st.session_state.cached:
                 uid = st.session_state.get("user_id")
@@ -505,7 +559,12 @@ img.onload=()=>fit();
             if final_lang.lower() == "python":
                 if st.button("▶️ Run Step-by-Step Execution", key="bstep"):
                     with st.spinner("Tracing Python execution..."):
-                        steps = trace_python_execution(code)
+                        python_code = st.session_state.get(
+                            "translated_python_code",
+                            code
+                        )
+
+                        steps = trace_python_execution(python_code)
                     if steps:
                         sh = render_step_visualizer(steps, code)
                         components.html(sh, height=560, scrolling=False)
@@ -520,8 +579,17 @@ img.onload=()=>fit();
 <div style="font-size:12px;margin-top:8px;color:#45475a;">Works with Python code only · Use ◀ ▶ to navigate steps</div>
 </div></body></html>""", height=320)
             else:
-                st.info(f"⚠️ Step-by-step supports **Python** only. Detected: **{final_lang}**")
-                st.markdown("💡 Use the **Translate tab** to convert to Python first!")
+                st.info(
+                    f"⚠️ Step-by-step execution supports **Python** only. "
+                    f"Detected: **{final_lang}**."
+                )
+
+                st.markdown("💡 Use the **Translate** tab to convert it to Python first!")
+
+                if st.button("🔄 Go to Translate Tab"):
+                    st.warning("Please open the **🔄 Translate** tab above to convert your code.")
+                    st.session_state.active_tab = 1  # Index of the Translate tab
+                    st.rerun()
 
         with vt3:
             st.markdown("### 🌡️ Readability Heatmap")
