@@ -136,20 +136,20 @@ def load_history_item(rid):
         })
 
 def show_auth_page():
-<<<<<<< HEAD
-    # st.markdown("<br>", unsafe_allow_html=True)
-    c1,c2,c3 = st.columns([1,2,1])
-    with c2:
-        st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
-        st.markdown("## 🧠 NeuraCode: AI Code Interpreter ")
-        st.markdown("*Sign in to save your personal history*")
-=======
-    _,col,_ = st.columns([1,2,1])
+    _, col, _ = st.columns([1, 2, 1])
     with col:
-        st.markdown("<div class='auth-card'>",unsafe_allow_html=True)
-        st.markdown("<h2 style='text-align:center;'>🧠 NeuraCode</h2>",unsafe_allow_html=True)
-        st.markdown("<p style='text-align:center;color:#6c7086;margin-top:-8px;'>AI Code Interpreter</p>",unsafe_allow_html=True)
->>>>>>> 5d9165a (NeuraCode v3.1 - fix empty box, mobile key, caching, guest privacy)
+        st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
+        st.markdown(
+            "<h2 style='text-align:center;'>🧠 NeuraCode: AI Code Interpreter</h2>",
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            "<p style='text-align:center;color:#6c7086;'>Sign in to save your personal history</p>",
+            unsafe_allow_html=True
+        )
+
+        st.divider()
+        t1, t2, t3 = st.tabs(["🔐 Login", "📝 Sign Up", "👤 Guest"])
         st.divider()
         t1,t2,t3 = st.tabs(["🔐 Login","📝 Sign Up","👤 Guest"])
         with t1:
