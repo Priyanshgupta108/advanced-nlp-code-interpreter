@@ -140,7 +140,7 @@ def show_auth_page():
     with col:
         st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
         st.markdown(
-            "<h2 style='text-align:center;'>🧠 NeuraCode</h2>",
+            "<h2 style='text-align:center;'>🧠 NeuraCode : AI Code Interpreter</h2>",
             unsafe_allow_html=True
         )
         st.markdown(
