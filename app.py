@@ -140,55 +140,78 @@ def show_auth_page():
     with col:
         st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
         st.markdown(
-            "<h2 style='text-align:center;'>🧠 NeuraCode: AI Code Interpreter</h2>",
+            "<h2 style='text-align:center;'>🧠 NeuraCode</h2>",
             unsafe_allow_html=True
         )
         st.markdown(
-            "<p style='text-align:center;color:#6c7086;'>Sign in to save your personal history</p>",
+            "<p style='text-align:center;color:#6c7086;margin-top:-8px;'>AI Code Interpreter</p>",
             unsafe_allow_html=True
         )
 
         st.divider()
         t1, t2, t3 = st.tabs(["🔐 Login", "📝 Sign Up", "👤 Guest"])
-        st.divider()
-        t1,t2,t3 = st.tabs(["🔐 Login","📝 Sign Up","👤 Guest"])
+
+        # 🔐 Login Tab
         with t1:
             with st.form("lf"):
-                em=st.text_input("Email",placeholder="you@example.com")
-                pw=st.text_input("Password",type="password")
-                if st.form_submit_button("Login",use_container_width=True):
+                em = st.text_input("Email", placeholder="you@example.com")
+                pw = st.text_input("Password", type="password")
+                if st.form_submit_button("Login", use_container_width=True):
                     if em and pw:
                         with st.spinner("Logging in..."):
-                            r=auth_mgr.sign_in(em,pw)
+                            r = auth_mgr.sign_in(em, pw)
                         if r["success"]:
-                            st.session_state.update({"logged_in":True,"user_authenticated":True,
-                                "user_id":r.get("user_id"),"user_email":r.get("email",em),
-                                "username":r.get("username",em.split("@")[0]),
-                                "access_token":r.get("access_token")})
-                            refresh_history(); st.rerun()
-                        else: st.error("❌ "+r["message"])
-                    else: st.warning("Fill all fields")
+                            st.session_state.update({
+                                "logged_in": True,
+                                "user_authenticated": True,
+                                "user_id": r.get("user_id"),
+                                "user_email": r.get("email", em),
+                                "username": r.get("username", em.split("@")[0]),
+                                "access_token": r.get("access_token")
+                            })
+                            refresh_history()
+                            st.rerun()
+                        else:
+                            st.error("❌ " + r["message"])
+                    else:
+                        st.warning("Fill all fields")
+
+        # 📝 Sign Up Tab
         with t2:
             with st.form("sf"):
-                un=st.text_input("Username",placeholder="Your name")
-                em2=st.text_input("Email",placeholder="you@example.com")
-                pw2=st.text_input("Password",type="password",placeholder="Min 6 chars")
-                cp=st.text_input("Confirm Password",type="password")
-                if st.form_submit_button("Create Account",use_container_width=True):
-                    if not em2 or not pw2: st.warning("Fill all fields")
-                    elif pw2!=cp: st.error("Passwords don't match!")
-                    elif len(pw2)<6: st.error("Min 6 characters")
+                un = st.text_input("Username", placeholder="Your name")
+                em2 = st.text_input("Email", placeholder="you@example.com")
+                pw2 = st.text_input("Password", type="password", placeholder="Min 6 chars")
+                cp = st.text_input("Confirm Password", type="password")
+                if st.form_submit_button("Create Account", use_container_width=True):
+                    if not em2 or not pw2:
+                        st.warning("Fill all fields")
+                    elif pw2 != cp:
+                        st.error("Passwords don't match!")
+                    elif len(pw2) < 6:
+                        st.error("Min 6 characters")
                     else:
-                        with st.spinner("Creating..."): r=auth_mgr.sign_up(em2,pw2,un)
-                        if r["success"]: st.success("✅ Account created! Please login.")
-                        else: st.error("❌ "+r["message"])
+                        with st.spinner("Creating..."):
+                            r = auth_mgr.sign_up(em2, pw2, un)
+                        if r["success"]:
+                            st.success("✅ Account created! Please login.")
+                        else:
+                            st.error("❌ " + r["message"])
+
+        # 👤 Guest Tab
         with t3:
             st.info("🔒 **Guest = Incognito**\nNo data stored anywhere.")
-            if st.button("Continue as Guest",use_container_width=True):
-                st.session_state.update({"logged_in":True,"user_authenticated":False,
-                    "user_id":None,"username":"Guest","history_records":[]})
+            if st.button("Continue as Guest", use_container_width=True):
+                st.session_state.update({
+                    "logged_in": True,
+                    "user_authenticated": False,
+                    "user_id": None,
+                    "username": "Guest",
+                    "history_records": []
+                })
                 st.rerun()
-        st.markdown("</div>",unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 def show_main_app():
     is_auth=st.session_state.user_authenticated
