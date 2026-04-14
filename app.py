@@ -4,6 +4,7 @@ Fixes: empty top box, mobile API key, caching, guest privacy, lazy visuals
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 # MUST be the very first Streamlit call — no duplicate import, no st. before this
 st.set_page_config(
@@ -140,9 +141,9 @@ def show_auth_page():
     with col:
         st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
         st.markdown(
-            "<h2 style='text-align:center;'>🧠 NeuraCode : AI Code Interpreter</h2>",
+            "<h2 style='text-align:center;'>🧠 NeuraCode: AI Code Interpreter</h2>",
             unsafe_allow_html=True
-        )
+        )   
         st.markdown(
             "<p style='text-align:center;color:#6c7086;margin-top:-8px;'>AI Code Interpreter</p>",
             unsafe_allow_html=True
@@ -278,7 +279,34 @@ def show_main_app():
         for c in ["🔤 Tokenization","🚫 Stop Words","🌱 Stemming","📖 Lemmatization",
                   "📊 TF-IDF","🔍 Pattern Matching","📐 N-grams","🌍 Lang Detection","🏷️ POS Tagging"]:
             st.markdown(f"<span class='nlp-tag'>{c}</span>",unsafe_allow_html=True)
+    # Detect mobile device using screen width
 
+    components.html(
+        """
+        <script>
+        const width = window.innerWidth;
+        if (width < 768) {
+            window.parent.postMessage(
+                {type: "streamlit:setComponentValue", value: "mobile"},
+                "*"
+            );
+        }
+        </script>
+        """,
+        height=0,
+    )
+
+    # Initialize session state for mobile detection
+    # 📱 Mobile Device Detection (Reliable and Clean)
+    if "is_mobile" not in st.session_state:
+        try:
+            user_agent = st.context.headers.get("user-agent", "").lower()
+            st.session_state.is_mobile = any(
+                device in user_agent
+                for device in ["mobile", "android", "iphone", "ipad"]
+            )
+        except Exception:
+            st.session_state.is_mobile = False
     st.markdown("# 🧠 NeuraCode: AI Code Interpreter")
     st.markdown("Detect · Explain · Translate · Visualize · Step-Trace · Optimize")
 
@@ -369,9 +397,43 @@ def show_main_app():
         else:
             api=get_api_handler(st.session_state.api_key)
             cd=st.session_state.cached_data or {}
-            TABS=["📖 Explain","🔄 Translate","📈 Complexity","🐛 Bugs","🧪 Tests","📝 Pseudocode","🔢 Algorithm","🔀 Approaches"]
-            sel=st.radio("fs",TABS,index=st.session_state.active_tab,horizontal=True,label_visibility="collapsed")
-            st.session_state.active_tab=TABS.index(sel)
+            # AI Feature Tabs (Responsive for Mobile)
+            TABS = [
+                "📖 Explain",
+                "🔄 Translate",
+                "📈 Complexity",
+                "🐛 Bugs",
+                "🧪 Tests",
+                "📝 Pseudocode",
+                "🔢 Algorithm",
+                "🔀 Approaches"
+            ]
+
+            # Initialize session state
+            if "active_tab" not in st.session_state:
+                st.session_state.active_tab = 0
+
+            # Detect mobile device
+            is_mobile = st.session_state.get("is_mobile", False)
+
+            # Responsive layout
+            if is_mobile:
+                sel = st.selectbox(
+                    "📱 Choose Feature",
+                    TABS,
+                    index=st.session_state.active_tab
+                )
+            else:
+                sel = st.radio(
+                    "fs",
+                    TABS,
+                    index=st.session_state.active_tab,
+                    horizontal=True,
+                    label_visibility="collapsed"
+                )
+
+            # Update active tab
+            st.session_state.active_tab = TABS.index(sel)
 
             def ai_block(key,label,ckey,fn,*args):
                 st.markdown(f"### {label}")
