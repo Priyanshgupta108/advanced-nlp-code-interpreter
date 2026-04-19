@@ -25,6 +25,7 @@ from code_visualizer import generate_visualization, render_visualization_html
 from history_manager import HistoryManager
 from auth_manager import AuthManager
 from step_visualizer import trace_python_execution, render_step_visualizer
+from vscode_editor import render_monaco_editor
 
 # ── SECRETS ────────────────────────────────────────────────────
 def get_secret(key, fallback=""):
@@ -532,39 +533,48 @@ def show_main_app():
 
     # ── CODE INPUT ───────────────────────────────────────────
     # On mobile columns stack, so code area gets full width
-    c1, c2 = st.columns([3, 1])
-    with c1:
-        # VS Code titlebar
-        st.markdown("""<div class='vscode-wrap'><div class='vscode-titlebar'>
-<span class='dot dot-r'></span><span class='dot dot-y'></span><span class='dot dot-g'></span>
-<span class='vscode-fname'>📄 code.py</span>
-<span class='vscode-lang'>Auto Detect</span>
-</div></div>""", unsafe_allow_html=True)
-        # VS Code body
-        st.markdown("<div class='vscode-wrap'>", unsafe_allow_html=True)
-        code_input = st.text_area(
-            "code_in", height=240, label_visibility="collapsed",
-            placeholder="# Paste your code here...\n# Supports Python, Java, C++, JavaScript and more")
-        st.markdown("</div>", unsafe_allow_html=True)
-        # VS Code status bar
-        _ln = len(code_input.split("\n")) if code_input.strip() else 0
-        _ch = len(code_input)
-        st.markdown(f"""<div class='vscode-statusbar'>
-<span>Ln {_ln}</span><span>Col 1</span><span>{_ch} chars</span>
-<span>UTF-8</span><span style='margin-left:auto;'>⚡ NeuraCode</span>
-</div>""", unsafe_allow_html=True)
-    with c2:
-        st.markdown("**⚙️ Options**")
-        auto = st.checkbox("Auto-detect language", value=True)
+    # ── OPTIONS ROW ──────────────────────────────────────────
+    op1, op2, op3 = st.columns([2, 1, 1])
+    with op1:
+        auto = st.checkbox("🔍 Auto-detect language", value=True)
+    with op2:
         manual_lang = None
         if not auto:
-            manual_lang = st.selectbox(
-                "Language",
+            manual_lang = st.selectbox("Language",
                 ["Python","Java","C++","C","JavaScript","TypeScript",
-                 "Go","Kotlin","Ruby","SQL"])
-        target_lang = st.selectbox(
-            "Translate To",
+                 "Go","Kotlin","Ruby","SQL"], label_visibility="collapsed")
+    with op3:
+        target_lang = st.selectbox("Translate To",
             ["Java","Python","C++","JavaScript","Go","Kotlin","TypeScript","Ruby"])
+
+    # ── MONACO EDITOR (real VS Code engine) ──────────────────
+    st.caption("💡 **Monaco Editor** — real VS Code engine · Ctrl+Space for suggestions · Ctrl+Enter to submit")
+
+    # Detect language for Monaco syntax highlighting
+    _editor_lang = manual_lang if (not auto and manual_lang) else "Python"
+    # If we already analyzed code, use detected language for highlighting
+    if st.session_state.get("lang"):
+        _editor_lang = st.session_state.lang
+
+    # Render Monaco editor
+    monaco_result = render_monaco_editor(
+        value=st.session_state.get("code", ""),
+        language=_editor_lang,
+        height=300,
+        key="monaco_main"
+    )
+
+    # Fallback text area (hidden but functional — Monaco sends value via button)
+    st.markdown("<p style='color:#6c7086;font-size:12px;margin-top:4px;'>↑ Use the Monaco editor above, or paste code directly below:</p>", unsafe_allow_html=True)
+    code_input = st.text_area(
+        "code_fallback", height=80, label_visibility="collapsed",
+        placeholder="Paste code here if Monaco didn't load, or click '✓ Use This Code' in the editor above",
+        value=st.session_state.get("code", "") if st.session_state.analyzed else ""
+    )
+
+    # Use Monaco result if available (user clicked "Use This Code")
+    if monaco_result and isinstance(monaco_result, str) and monaco_result.strip():
+        code_input = monaco_result
 
     if st.button("🚀 Analyze Code", use_container_width=True):
         if not code_input.strip():
